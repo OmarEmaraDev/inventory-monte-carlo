@@ -3,24 +3,28 @@ cmake_minimum_required(VERSION 3.17)
 project("Inventory Monte Carlo")
 
 add_library(imgui
-  imgui/imgui.cpp
-  imgui/imgui_demo.cpp
-  imgui/imgui_draw.cpp
-  imgui/imgui_widgets.cpp
+  extern/imgui/imgui.cpp
+  extern/imgui/imgui_demo.cpp
+  extern/imgui/imgui_draw.cpp
+  extern/imgui/imgui_widgets.cpp
 )
 
 target_include_directories(imgui
-  PUBLIC imgui
+  PUBLIC extern/imgui
 )
 
-find_package(glfw3 REQUIRED)
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+
+add_subdirectory(extern/glfw)
 
 add_library(imguiGLFW
-  imgui/examples/imgui_impl_glfw.cpp
+  extern/imgui/examples/imgui_impl_glfw.cpp
 )
 
 target_include_directories(imguiGLFW
-  PUBLIC imgui/examples
+  PUBLIC extern/imgui/examples
 )
 
 target_link_libraries(imguiGLFW
@@ -32,11 +36,11 @@ include(FindOpenGL)
 include(FindGLEW)
 
 add_library(imguiOpenGL
-  imgui/examples/imgui_impl_opengl3.cpp
+  extern/imgui/examples/imgui_impl_opengl3.cpp
 )
 
 target_include_directories(imguiOpenGL
-  PUBLIC imgui/examples
+  PUBLIC extern/imgui/examples
 )
 
 target_link_libraries(imguiOpenGL
