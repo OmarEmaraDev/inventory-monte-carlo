@@ -54,9 +54,16 @@ target_link_libraries(inventoryMonteCarlo
   PRIVATE imguiOpenGL
 )
 
+if(MSVC)
+target_compile_options(inventoryMonteCarlo
+  PRIVATE /W4
+  PRIVATE /WX
+)
+else()
 target_compile_options(inventoryMonteCarlo
   PRIVATE -Wall
   PRIVATE -Wextra
   PRIVATE -pedantic
   PRIVATE -Werror
 )
+endif()
