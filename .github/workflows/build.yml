@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Where Are Libs?
         run: |
-          ls "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\16.5.30011\lib" -Recurse
+          ls "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\16.5.30011\lib"
       - name: Install Dependencies
         run: |
           Invoke-WebRequest https://github.com/nigels-com/glew/releases/download/glew-2.1.0/glew-2.1.0-win32.zip -OutFile glew.zip
