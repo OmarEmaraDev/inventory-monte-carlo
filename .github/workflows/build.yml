@@ -24,5 +24,5 @@ jobs:
           Copy-Item -Path "./glew/glew-2.1.0/lib/Release/x64/*" -Destination "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.25.28610\lib\x64"
           Invoke-WebRequest https://github.com/glfw/glfw/releases/download/3.3.2/glfw-3.3.2.bin.WIN64.zip -OutFile glfw.zip
           Expand-Archive glfw.zip
-          #          Copy-Item -Path "./glfw/glfw-3.3.2.bin.WIN64/include/GLFW" -Destination "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.25.28610\include" -Recurse
-          #          Copy-Item -Path "./glew/glfw-3.3.2.bin.WIN64/lib-vc2019/*" -Destination "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.25.28610\lib\x64" -Recurse
+          Copy-Item -Path "./glfw/glfw-3.3.2.bin.WIN64/include/GLFW" -Destination "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.25.28610\include" -Recurse
+          Copy-Item -Path "./glew/glfw-3.3.2.bin.WIN64/lib-vc2019/*" -Destination "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.25.28610\lib\x64"
