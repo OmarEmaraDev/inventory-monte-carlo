@@ -4,7 +4,8 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-#include <GL/glew.h>
+#include <glad/glad.h>
+
 #include <GLFW/glfw3.h>
 
 #include <random>
@@ -82,7 +83,7 @@ int main() {
       glfwCreateWindow(1280, 720, "Inventory Monte Carlo", NULL, NULL);
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1);
-  glewInit();
+  gladLoadGL();
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();

@@ -33,7 +33,10 @@ target_link_libraries(imguiGLFW
 )
 
 include(FindOpenGL)
-include(FindGLEW)
+
+add_subdirectory(extern/glad)
+
+add_compile_definitions(IMGUI_IMPL_OPENGL_LOADER_GLAD)
 
 add_library(imguiOpenGL
   extern/imgui/examples/imgui_impl_opengl3.cpp
@@ -46,7 +49,7 @@ target_include_directories(imguiOpenGL
 target_link_libraries(imguiOpenGL
   PUBLIC imgui
   PUBLIC OpenGL::GL
-  PUBLIC GLEW::glew
+  PUBLIC glad
 )
 
 add_executable(inventoryMonteCarlo
