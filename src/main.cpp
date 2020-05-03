@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -7,6 +6,8 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
+#include <random>
 
 #define MAX_SIZE 32
 #define DEFAULT_FREQUENCY 10
@@ -28,7 +29,7 @@ void computeProbabilities(float probabilities[MAX_SIZE],
 }
 
 int findRangeIndex(float cumulativeProbabilities[MAX_SIZE], int numberOfRecords,
-                   double target) {
+                   float target) {
   for (int i = 0; i < numberOfRecords - 1; i++) {
     if (target > cumulativeProbabilities[i] &&
         target <= cumulativeProbabilities[i + 1]) {
@@ -54,10 +55,11 @@ float getAverageDemand(Record records[MAX_SIZE], float probabilities[MAX_SIZE],
   computeCumulativeProbabilities(cumulativeProbabilities, probabilities,
                                  numberOfRecords);
 
-  srand48(0);
+  std::default_random_engine randomEngine;
+  std::uniform_real_distribution<> randomDistribution(0, 1);
   int total = 0;
   for (int i = 0; i < numberOfSamples; i++) {
-    double randomNumber = drand48();
+    float randomNumber = randomDistribution(randomEngine);
     int rangeIndex =
         findRangeIndex(cumulativeProbabilities, numberOfRecords, randomNumber);
     total += records[rangeIndex].demand;
