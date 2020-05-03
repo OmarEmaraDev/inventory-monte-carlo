@@ -15,14 +15,14 @@ jobs:
         uses: actions/checkout@v2
       - name: Where Are Libs?
         run: |
-          Get-ChildItem -Path "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC"
+          Get-ChildItem -Path "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.25.28610\lib"
       - name: Install Dependencies
         run: |
           Invoke-WebRequest https://github.com/nigels-com/glew/releases/download/glew-2.1.0/glew-2.1.0-win32.zip -OutFile glew.zip
           Expand-Archive glew.zip
-          Copy-Item -Path "./glew/glew-2.1.0/include/GL" -Destination "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\16.5.30011\include" -Recurse
-          Copy-Item -Path "./glew/glew-2.1.0/lib/Release/x64/*" -Destination "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\16.5.30011\lib\amd64" -Recurse
+          Copy-Item -Path "./glew/glew-2.1.0/include/GL" -Destination "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.25.28610\include" -Recurse
+          Copy-Item -Path "./glew/glew-2.1.0/lib/Release/x64/*" -Destination "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.25.28610\lib\amd64" -Recurse
           Invoke-WebRequest https://github.com/glfw/glfw/releases/download/3.3.2/glfw-3.3.2.bin.WIN64.zip -OutFile glfw.zip
           Expand-Archive glfw.zip
-          Copy-Item -Path "./glfw/glfw-3.3.2.bin.WIN64/include/GLFW" -Destination "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\16.5.30011\include" -Recurse
-          Copy-Item -Path "./glew/glfw-3.3.2.bin.WIN64/lib-vc2019/*" -Destination "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\16.5.30011\lib\amd64" -Recurse
+          Copy-Item -Path "./glfw/glfw-3.3.2.bin.WIN64/include/GLFW" -Destination "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.25.28610\include" -Recurse
+          Copy-Item -Path "./glew/glfw-3.3.2.bin.WIN64/lib-vc2019/*" -Destination "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.25.28610\lib\amd64" -Recurse
