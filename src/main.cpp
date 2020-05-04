@@ -4,7 +4,8 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-#include <GL/glew.h>
+#include <glad/glad.h>
+
 #include <GLFW/glfw3.h>
 
 #include <random>
@@ -29,7 +30,7 @@ void computeProbabilities(float probabilities[MAX_SIZE],
 }
 
 int findRangeIndex(float cumulativeProbabilities[MAX_SIZE], int numberOfRecords,
-                   float target) {
+                   double target) {
   for (int i = 0; i < numberOfRecords - 1; i++) {
     if (target > cumulativeProbabilities[i] &&
         target <= cumulativeProbabilities[i + 1]) {
@@ -59,7 +60,7 @@ float getAverageDemand(Record records[MAX_SIZE], float probabilities[MAX_SIZE],
   std::uniform_real_distribution<> randomDistribution(0, 1);
   int total = 0;
   for (int i = 0; i < numberOfSamples; i++) {
-    float randomNumber = randomDistribution(randomEngine);
+    double randomNumber = randomDistribution(randomEngine);
     int rangeIndex =
         findRangeIndex(cumulativeProbabilities, numberOfRecords, randomNumber);
     total += records[rangeIndex].demand;
@@ -82,7 +83,7 @@ int main() {
       glfwCreateWindow(1280, 720, "Inventory Monte Carlo", NULL, NULL);
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1);
-  glewInit();
+  gladLoadGL();
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -167,7 +168,7 @@ int main() {
     int displayWidth, displayHeight;
     glfwGetFramebufferSize(window, &displayWidth, &displayHeight);
     glViewport(0, 0, displayWidth, displayHeight);
-    glClearColor(0.05, 0.05, 0.05, 1.0);
+    glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     glfwSwapBuffers(window);
