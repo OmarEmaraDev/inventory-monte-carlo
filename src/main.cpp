@@ -30,7 +30,7 @@ void computeProbabilities(float probabilities[MAX_SIZE],
 }
 
 int findRangeIndex(float cumulativeProbabilities[MAX_SIZE], int numberOfRecords,
-                   float target) {
+                   double target) {
   for (int i = 0; i < numberOfRecords - 1; i++) {
     if (target > cumulativeProbabilities[i] &&
         target <= cumulativeProbabilities[i + 1]) {
@@ -60,7 +60,7 @@ float getAverageDemand(Record records[MAX_SIZE], float probabilities[MAX_SIZE],
   std::uniform_real_distribution<> randomDistribution(0, 1);
   int total = 0;
   for (int i = 0; i < numberOfSamples; i++) {
-    float randomNumber = randomDistribution(randomEngine);
+    double randomNumber = randomDistribution(randomEngine);
     int rangeIndex =
         findRangeIndex(cumulativeProbabilities, numberOfRecords, randomNumber);
     total += records[rangeIndex].demand;
