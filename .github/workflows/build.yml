@@ -17,8 +17,13 @@ jobs:
           submodules: recursive
       - name: Generate Configuration
         run: |
-          New-Item "build" -ItemType "directory"
+          mkdir build
           cmake -S . -B build
       - name: Build
         run: |
           cmake --build build
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: WindowsBinary
+          path: build\Debug\inventoryMonteCarlo.exe
