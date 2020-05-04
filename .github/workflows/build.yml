@@ -21,9 +21,9 @@ jobs:
           cmake -S . -B build
       - name: Build
         run: |
-          cmake --build build
+          cmake --build build --config Release
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
           name: WindowsBinary
-          path: build\Debug\inventoryMonteCarlo.exe
+          path: build\Release\inventoryMonteCarlo.exe
