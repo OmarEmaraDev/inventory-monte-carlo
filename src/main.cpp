@@ -12,69 +12,105 @@
 
 #define MAX_SIZE 32
 #define DEFAULT_FREQUENCY 10
+#define DEFAULT_NUMBER_OF_SIMULATION_DAYS 10
+#define DEFAULT_ORDER_QUANTITY 10
+#define DEFAULT_REORDER_POINT 5
+#define START_INVENTORY 5
 
-typedef struct {
-  int demand;
+struct Record {
+  int value;
   int frequency;
-} Record;
+};
 
-void computeProbabilities(float probabilities[MAX_SIZE],
-                          Record records[MAX_SIZE], int numberOfRecords) {
-  int sum = 0;
-  for (int i = 0; i < numberOfRecords; i++) {
-    sum += records[i].frequency;
-  }
-  for (int i = 0; i < numberOfRecords; i++) {
-    probabilities[i] = (float)records[i].frequency / sum;
-  }
-}
+typedef std::default_random_engine RandomEngine;
+typedef std::uniform_real_distribution<double> RandomDistribution;
 
-int findRangeIndex(float cumulativeProbabilities[MAX_SIZE], int numberOfRecords,
-                   double target) {
-  for (int i = 0; i < numberOfRecords - 1; i++) {
-    if (target > cumulativeProbabilities[i] &&
-        target <= cumulativeProbabilities[i + 1]) {
-      return i;
-    }
-  }
-  return numberOfRecords - 1;
-}
-
-void computeCumulativeProbabilities(float cumulativeProbabilities[MAX_SIZE],
-                                    float probabilities[MAX_SIZE],
-                                    int numberOfRecords) {
-  float sum = 0.0f;
+void computeCumulativeProbabilities(Record records[MAX_SIZE],
+                                    int numberOfRecords,
+                                    double cumulativeProbabilities[MAX_SIZE]) {
+  int total = 0;
   for (int i = 0; i < numberOfRecords; i++) {
-    sum += probabilities[i];
+    total += records[i].frequency;
+  }
+  double sum = 0.0f;
+  for (int i = 0; i < numberOfRecords; i++) {
+    sum += (double)records[i].frequency / total;
     cumulativeProbabilities[i] = sum;
   }
 }
 
-float getAverageDemand(Record records[MAX_SIZE], float probabilities[MAX_SIZE],
-                       int numberOfRecords, int numberOfSamples) {
-  float cumulativeProbabilities[MAX_SIZE];
-  computeCumulativeProbabilities(cumulativeProbabilities, probabilities,
-                                 numberOfRecords);
-
-  std::default_random_engine randomEngine;
-  std::uniform_real_distribution<> randomDistribution(0, 1);
-  int total = 0;
-  for (int i = 0; i < numberOfSamples; i++) {
-    double randomNumber = randomDistribution(randomEngine);
-    int rangeIndex =
-        findRangeIndex(cumulativeProbabilities, numberOfRecords, randomNumber);
-    total += records[rangeIndex].demand;
+int findRangeIndex(double array[MAX_SIZE], int arraySize, double target) {
+  for (int i = 0; i < arraySize - 1; i++) {
+    if (target > array[i] && target <= array[i + 1]) {
+      return i;
+    }
   }
-  return (float)total / numberOfSamples;
+  return arraySize - 1;
 }
 
-float getExpectedDemand(Record records[MAX_SIZE], float probabilities[MAX_SIZE],
-                        int numberOfRecords) {
-  float expectedDemand = 0.0f;
-  for (int i = 0; i < numberOfRecords; i++) {
-    expectedDemand += records[i].demand * probabilities[i];
+int getRandomRecordValue(double cumulativeProbabilities[MAX_SIZE],
+                         Record records[MAX_SIZE], int numberOfRecords,
+                         RandomEngine &randomEngine,
+                         RandomDistribution &randomDistribution) {
+  int rangeIndex = findRangeIndex(cumulativeProbabilities, numberOfRecords,
+                                  randomDistribution(randomEngine));
+  return records[rangeIndex].value;
+}
+
+void analyseInventory(Record demandRecords[MAX_SIZE], int numberOfDemandRecords,
+                      Record leadTimeRecords[MAX_SIZE],
+                      int numberOfLeadTimeRecords, int numberOfSimulationDays,
+                      int orderQuantity, int reorderPoint,
+                      RandomEngine &randomEngine,
+                      RandomDistribution &randomDistribution,
+                      double *averageEndingInventory, double *averageLostSales,
+                      double *averageNumberOfOrders) {
+  double demandCumulativeProbabilities[MAX_SIZE];
+  computeCumulativeProbabilities(demandRecords, numberOfDemandRecords,
+                                 demandCumulativeProbabilities);
+
+  double leadTimeCumulativeProbabilities[MAX_SIZE];
+  computeCumulativeProbabilities(leadTimeRecords, numberOfLeadTimeRecords,
+                                 leadTimeCumulativeProbabilities);
+
+  int numberOfOrdersPlaced = 0;
+  int sumOfEndingInventory = 0;
+  int sumOfLostSales = 0;
+  int currentInventory = START_INVENTORY;
+  int daysUntilArrivalOfOrder = 0;
+  bool isWaitingForOrder = false;
+  for (int i = 0; i < numberOfSimulationDays; i++) {
+    if (isWaitingForOrder && daysUntilArrivalOfOrder == 0) {
+      currentInventory += orderQuantity;
+      isWaitingForOrder = false;
+    }
+    daysUntilArrivalOfOrder--;
+
+    int demand = getRandomRecordValue(demandCumulativeProbabilities,
+                                      demandRecords, numberOfDemandRecords,
+                                      randomEngine, randomDistribution);
+    currentInventory -= demand;
+    if (currentInventory < 0) {
+      sumOfLostSales -= currentInventory;
+      currentInventory = 0;
+    } else {
+      sumOfEndingInventory += currentInventory;
+    }
+
+    if (currentInventory < reorderPoint) {
+      daysUntilArrivalOfOrder = getRandomRecordValue(
+          leadTimeCumulativeProbabilities, leadTimeRecords,
+          numberOfLeadTimeRecords, randomEngine, randomDistribution);
+      isWaitingForOrder = true;
+      numberOfOrdersPlaced++;
+    }
   }
-  return expectedDemand;
+
+  *averageEndingInventory =
+      (double)sumOfEndingInventory / numberOfSimulationDays;
+  *averageLostSales = (double)sumOfLostSales / numberOfSimulationDays;
+  *averageNumberOfOrders =
+      (double)numberOfOrdersPlaced / numberOfSimulationDays;
 }
 
 int main() {
@@ -102,12 +138,14 @@ int main() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    static int numberOfRecords = 0;
-    static Record records[MAX_SIZE];
+    static int numberOfDemandRecords = 0;
+    static Record demandRecords[MAX_SIZE];
+    static int numberOfLeadTimeRecords = 0;
+    static Record leadTimeRecords[MAX_SIZE];
 
     ImGui::Begin("Inventory Monte Carlo");
 
-    ImGui::Columns(2, "data");
+    ImGui::Columns(2, "Demands Table");
 
     ImGui::Separator();
 
@@ -118,14 +156,14 @@ int main() {
 
     ImGui::Separator();
 
-    for (int i = 0; i < numberOfRecords; i++) {
-      Record *record = records + i;
+    for (int i = 0; i < numberOfDemandRecords; i++) {
+      Record *record = demandRecords + i;
       ImGui::PushID(i);
-      if (ImGui::DragInt("##Demand", &record->demand)) {
-        record->demand = record->demand > 0 ? record->demand : 0;
+      if (ImGui::DragInt("##Demand", &record->value)) {
+        record->value = record->value > 0 ? record->value : 0;
       }
       ImGui::NextColumn();
-      if (ImGui::DragInt("##Frequency", &record->frequency)) {
+      if (ImGui::DragInt("##Demand Frequency", &record->frequency)) {
         record->frequency = record->frequency > 0 ? record->frequency : 0;
       }
       ImGui::NextColumn();
@@ -135,12 +173,50 @@ int main() {
     ImGui::Columns(1);
 
     ImGui::Spacing();
-    if (ImGui::Button("Add Record")) {
-      if (numberOfRecords < MAX_SIZE) {
-        Record *record = records + numberOfRecords;
-        record->demand = numberOfRecords;
+    if (ImGui::Button("Add Demand Record")) {
+      if (numberOfDemandRecords < MAX_SIZE) {
+        Record *record = demandRecords + numberOfDemandRecords;
+        record->value = numberOfDemandRecords;
         record->frequency = DEFAULT_FREQUENCY;
-        numberOfRecords++;
+        numberOfDemandRecords++;
+      }
+    }
+    ImGui::Spacing();
+
+    ImGui::Columns(2, "Lead Times Table");
+
+    ImGui::Separator();
+
+    ImGui::Text("Lead Time");
+    ImGui::NextColumn();
+    ImGui::Text("Frequency");
+    ImGui::NextColumn();
+
+    ImGui::Separator();
+
+    for (int i = 0; i < numberOfLeadTimeRecords; i++) {
+      Record *record = leadTimeRecords + i;
+      ImGui::PushID(i);
+      if (ImGui::DragInt("##Lead Time", &record->value)) {
+        record->value = record->value > 0 ? record->value : 0;
+      }
+      ImGui::NextColumn();
+      if (ImGui::DragInt("##Lead Time Frequency", &record->frequency)) {
+        record->frequency = record->frequency > 0 ? record->frequency : 0;
+      }
+      ImGui::NextColumn();
+      ImGui::PopID();
+    }
+
+    ImGui::Columns(1);
+
+    ImGui::Spacing();
+    if (ImGui::Button("Add Lead Time Record")) {
+      if (numberOfLeadTimeRecords < MAX_SIZE) {
+        Record *record = leadTimeRecords + numberOfLeadTimeRecords;
+        record->value = numberOfLeadTimeRecords;
+        record->frequency = DEFAULT_FREQUENCY;
+        numberOfLeadTimeRecords++;
       }
     }
     ImGui::Spacing();
@@ -148,19 +224,28 @@ int main() {
     ImGui::Separator();
 
     ImGui::Spacing();
-    static int numberOfSamples = 100;
-    ImGui::SliderInt("Number Of Samples", &numberOfSamples, 1, 1000000);
+    static int numberOfSimulationDays = DEFAULT_NUMBER_OF_SIMULATION_DAYS;
+    ImGui::SliderInt("Number Of Simulation Days", &numberOfSimulationDays, 1,
+                     1000);
+    static int orderQuantity = DEFAULT_ORDER_QUANTITY;
+    ImGui::SliderInt("Order Quantity", &orderQuantity, 1, 50);
+    static int reorderPoint = DEFAULT_REORDER_POINT;
+    ImGui::SliderInt("Rorder Point", &reorderPoint, 1, 10);
     ImGui::Spacing();
 
-    float frequencies[MAX_SIZE];
-    computeProbabilities(frequencies, records, numberOfRecords);
+    RandomEngine randomEngine;
+    RandomDistribution randomDistribution(0.0, 1.0);
 
-    ImGui::Text("Average Demand: %.2f",
-                getAverageDemand(records, frequencies, numberOfRecords,
-                                 numberOfSamples));
+    double averageEndingInventory, averageLostSales, averageNumberOfOrders;
+    analyseInventory(demandRecords, numberOfDemandRecords, leadTimeRecords,
+                     numberOfLeadTimeRecords, numberOfSimulationDays,
+                     orderQuantity, reorderPoint, randomEngine,
+                     randomDistribution, &averageEndingInventory,
+                     &averageLostSales, &averageNumberOfOrders);
 
-    ImGui::Text("Expected Demand: %.2f",
-                getExpectedDemand(records, frequencies, numberOfRecords));
+    ImGui::Text("Average Ending Inventory: %.2f", averageEndingInventory);
+    ImGui::Text("Average Lost Sales: %.2f", averageLostSales);
+    ImGui::Text("Average Number Of Orders: %.2f", averageNumberOfOrders);
 
     ImGui::End();
 
