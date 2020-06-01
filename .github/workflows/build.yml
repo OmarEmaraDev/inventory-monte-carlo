@@ -27,22 +27,11 @@ jobs:
         with:
           name: WindowsBinary
           path: build\Release\inventoryMonteCarlo.exe
-      - name: Create Release
-        id: createRelease
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: daily
-          release_name: Daily Release
-          prerelease: true
       - name: Upload Release Assets
-        id: uploadReleaseAsset 
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: svenstaro/upload-release-action@v1-release
         with:
-          upload_url: ${{ steps.createRelease.outputs.upload_url }}
-          asset_path: build\Release\inventoryMonteCarlo.exe
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: daily
+          file: build\Release\inventoryMonteCarlo.exe
           asset_name: inventoryMonteCarlo.exe
-          asset_content_type: application/vnd.microsoft.portable-executable
+          overwrite: true

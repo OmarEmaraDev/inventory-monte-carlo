@@ -32,7 +32,7 @@ void computeCumulativeProbabilities(Record records[MAX_SIZE],
   for (int i = 0; i < numberOfRecords; i++) {
     total += records[i].frequency;
   }
-  double sum = 0.0f;
+  double sum = 0.0;
   for (int i = 0; i < numberOfRecords; i++) {
     sum += (double)records[i].frequency / total;
     cumulativeProbabilities[i] = sum;
@@ -129,7 +129,7 @@ int main() {
   ImGui::StyleColorsDark();
 
   ImGui_ImplGlfw_InitForOpenGL(window, true);
-  ImGui_ImplOpenGL3_Init("#version 430 core");
+  ImGui_ImplOpenGL3_Init(NULL);
 
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
